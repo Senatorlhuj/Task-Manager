@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Manager</title>
+    <link rel="stylesheet" href="app.css">
+</head>
+<body>
+    <div id="app">
+
+        <div class="todo-app">
+            <h1>TASK MANAGER </h1>
+    
+            <form @submit.prevent="addTodo" class="todo-form">
+                <div class="input-group">
+                    <input type="text" v-model="newTodoText" placeholder="Add new task" class="task-input">
+                    <input type="date" v-model="newTodoDueDate" :min="new Date().toISOString().split('T')[0]"
+                        class="date-input">
+                    <button type="submit" class="add-button">Add Task</button>
+                </div>
+    
+                <p v-if="error" class="error-message">{{ error }}</p>
+    
+                <div class="filter-group">
+                    <input type="text" v-model="searchQuery" placeholder="Search tasks" class="search-input">
+    
+                    <div class="select-group">
+                        <select v-model="filterStatus" class="status-select">
+                            <option value="all">All Tasks</option>
+                            <option value="active">Active</option>
+                            <option value="completed">Completed</option>
+                        </select>
+    
+                        <select v-model="upcomingFilter" class="date-select">
+                            <option value="all">All Dates</option>
+                            <option value="today">Today</option>
+                            <option value="tomorrow">Tomorrow</option>
+                            <option value="thisWeek">This Week</option>
+                            <option value="nextWeek">Next Week</option>
+                        </select>
+                    </div>
+                </div>
+            </form>
+    
+            <ul class="todo-list" v-if="sortedTodos.length" style="height: 300px; overflow: auto;">
+                <li v-for="(todo, index) in sortedTodos" :key="todo.createdAt + index" :class="{
+                    'completed': todo.completed,
+                    'past-due': !todo.completed && isPastDue(todo.dueDate)
+                }" class="todo-item">
+                    <div class="todo-content">
+                        <input type="checkbox" v-model="todo.completed" class="complete-checkbox" @change="saveTodos">
+    
+                        <div class="todo-text">
+                            <span v-if="editingIndex !== index" @dblclick="editTodo(index)" class="task-text">
+                                {{ todo.text }}
+                            </span>
+    
+                            <input type="text" v-model="todo.text" v-if="editingIndex === index" @blur="saveEdit(index)"
+                                @keyup.enter="saveEdit(index)" @keyup.escape="cancelEdit" ref="editInput"
+                                class="edit-input">
+    
+                            <div class="due-date">
+                                Due: {{ formatDate(todo.dueDate) }}
+                                <span v-if="isPastDue(todo.dueDate) && !todo.completed" class="past-due-label">
+                                    (Past due)
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+    
+                    <div class="todo-actions">
+                        <button v-if="editingIndex !== index" @click="editTodo(index)" class="edit-button">
+                            Edit
+                        </button>
+    
+                        <button v-else @click="cancelEdit" class="cancel-button">
+                            Cancel edit
+                        </button>
+    
+                        <button @click="removeTodo(index)" class="delete-button">
+                            🗑
+                        </button>
+                    </div>
+                </li>
+            </ul>
+    
+            <p v-else class="empty-message">
+                No tasks found. Add a new task above!
+            </p>
+    
+            <div class="stats" v-if="todos.length">
+                <span>
+                    Total tasks: {{ todos.length }} |
+                    Completed tasks: {{todos.filter(t => t.completed).length}} |
+                    Active tasks: {{todos.filter(t => !t.completed).length}}
+                </span>
+            </div>
+        </div>
+       
+    </div>
+
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
